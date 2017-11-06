@@ -1,0 +1,39 @@
+---
+- hosts: web
+  remote_user: root
+  vars:
+    http_ports: 80
+  tasks:
+    
+    - name: install nginx
+      apt: name=nginx state=present
+
+    - name: install git
+      apt: name=git state=latest
+
+    - name: install curl
+      apt: name=curl state=latest
+
+    - name: update deb source
+      shell: curl -sL https://deb.nodesource.com/setup_8.x | sh
+
+    - name: install nodejs and npm
+      apt: name=nodejs state=latest
+
+    - name: clone nodejs project
+      git: repo=https://git.mrzee.fr/student/my-node-project.git dest=/var/www/my-node-project
+
+    - name: install nodejs dep
+      npm: path=/var/www/my-node-project/myapp/
+
+    - name: install pm2 in global
+      npm: name=pm2 global=yes
+
+    - name: run nodejs app
+      shell: pm2 start /var/www/my-node-project/myapp/bin/www
+
+    - name: copy vhost to nginx sites-enabled
+      shell: cp /var/www/my-node-project/vhost /etc/nginx/sites-enabled/default
+
+    - name: Start Nginx
+      shell: service nginx restart
